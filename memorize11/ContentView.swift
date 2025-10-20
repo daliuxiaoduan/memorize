@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     let emojis:[String] = ["❤️","😂","🤡","😈","😸","🙈","💀"]
-    @State var  cardCount:Int = 4
+    var curEmojis:[String] = []
+    @State var  cardCount:Int = 1
     var body: some View {
         VStack{
             cards
@@ -18,7 +19,6 @@ struct ContentView: View {
         }
         .padding()
     }
- 
     var cardCountAdjuster:some View{
         HStack{
             cardRemover
