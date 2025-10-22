@@ -8,20 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    let emojis:[String] = ["❤️","😂","🤡","😈","😸","🙈","💀"]
-    var curEmojis:[String] = []
+  @ObservedObject var viewModel:EmojiMemoryGame = EmojiMemoryGame()
     @State var  cardCount:Int = 1
     var body: some View {
-        VStack{
-            cards
-            Spacer()
-            cardCountAdjuster
+        ScrollView{
+            VStack{
+                cards
+                Spacer()
+                cardCountAdjuster
+            }
+            .padding()
         }
-        .padding()
+     
     }
     var cardCountAdjuster:some View{
         HStack{
             cardRemover
+            Spacer()
+            Button("shuffle"){
+                viewModel.shuffle()
+            }
             Spacer()
             cardAdder
         }
@@ -29,9 +35,11 @@ struct ContentView: View {
         .font(.largeTitle)
     }
     var cards:some View{
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-            ForEach(0..<cardCount,id:\.self){ index in
-                CardView(content: emojis[index],isFaceUp: true)
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 85), spacing: 0)], spacing: 0) {
+            ForEach(viewModel.cards.indices, id:\.self){ index in
+                CardView(viewModel.cards[index])
+                    .aspectRatio(2/3, contentMode: .fit)
+                    .padding(4)
             }
         }
        
@@ -40,7 +48,7 @@ struct ContentView: View {
     var cardRemover:some View{
         Button(action: {
             if(cardCount - 1 == 0){
-                cardCount = emojis.count
+                cardCount = viewModel.cards.count
             }else{
                 cardCount -= 1
             }
@@ -51,7 +59,7 @@ struct ContentView: View {
     
     var cardAdder:some View{
         Button(action:{
-            if(cardCount  == emojis.count){
+            if(cardCount  == viewModel.cards.count){
                 cardCount = 1
             }else{
                 cardCount += 1
@@ -62,22 +70,25 @@ struct ContentView: View {
     }
 }
 struct CardView:View {
-    let content:String
-    @State var isFaceUp:Bool = true
+    var card:MemoryGame<String>.Card
+    init(_ card: MemoryGame<String>.Card) {
+        self.card = card
+    }
     var body: some View {
         ZStack{
             var base = RoundedRectangle(cornerRadius: 12)
             Group{
                 base.fill(.white)
                 base.strokeBorder(lineWidth: 2)
-                Text(content).font(.largeTitle)
-            }.opacity(isFaceUp ? 1 : 0)
-            base.fill().opacity(isFaceUp ? 0:1)
-        }.onTapGesture  {
-            isFaceUp.toggle()
+                Text(card.content)
+                    .font(.system(size: 200))
+                    .minimumScaleFactor(0.01)//用来适配卡片大小
+                    .aspectRatio(1, contentMode: .fit)
+            }.opacity(card.isFaceUp ? 1 : 0)
+            base.fill().opacity(card.isFaceUp ? 0:1)
         }
     }
 }
 #Preview {
-    ContentView()
+    ContentView(viewModel: EmojiMemoryGame())
 }
